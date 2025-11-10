@@ -17,7 +17,7 @@ A smart activity planner that uses real-time weather data to suggest optimal tim
 ## Quick Review Setup 
 
 Check out the live demo:
-**(https://dubbus.github.io/CloudFlareWeatherRecommendations/)**
+**https://dubbus.github.io/cf_ai_CloudFlareWeatherRecommendations/**
 
 If you prefer to run it locally:
 
