@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Weather Planner — Demo UI</title>
+    <style>
+      body { 
+        font-family: system-ui, Arial; 
+        max-width: 1200px; 
+        margin: 32px auto; 
+        padding: 0 24px; 
+        line-height: 1.5;
+      }
+      label { display:block; margin-top:12px }
+      textarea { width:100%; height:120px }
+      pre { 
+        background:#f6f8fa; 
+        padding:16px; 
+        border-radius:8px; 
+        overflow:auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 14px;
+        max-height: 800px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f6f8fa;
+      }
+      .row { display:flex; gap:12px; align-items: center; }
+      #output {
+        max-width: 100%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e1e4e8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Smart Weather Planner — Demo UI</h1>
+    
+    <label>City <input id="city" placeholder="e.g., Columbus, OH" /></label>
+    <div class="row">
+      <label>Lat <input id="lat" type="number" step="any" placeholder="e.g., 39.9612" /></label>
+      <label>Lon <input id="lon" type="number" step="any" placeholder="e.g., -82.9988" /></label>
+    </div>
+
+    <fieldset style="border:1px solid #ddd; padding:12px;">
+      <legend>Preferences</legend>
+      <div>
+        <label>Preferred times:</label>
+        <label><input type="checkbox" id="prefMorning" /> Morning</label>
+        <label><input type="checkbox" id="prefEvening" /> Evening</label>
+      </div>
+      <div>
+        <label>Max Temperature (°F) <input id="prefMaxTemp" type="number" placeholder="e.g., 85" style="width:100px;"/></label>
+        <label>Min Temperature (°F) <input id="prefMinTemp" type="number" placeholder="e.g., 45" style="width:100px;"/></label>
+      </div>
+      <div>
+        <label><input type="checkbox" id="prefAvoidWind" /> Avoid wind</label>
+      </div>
+      <div>
+        <label>Activities (comma-separated) <input id="prefActivities" placeholder="e.g., running, hiking, picnic" /></label>
+      </div>
+    </fieldset>
+
+    <div style="margin-top:12px">
+      <button id="saveState">Save State</button>
+      <button id="getPlan">Get Plan</button>
+    </div>
+
+    <h3>Response</h3>
+    <pre id="output">(no response yet)</pre>
+
+    <script src="./app.js">
+      
+      // Rest of app.js content will go here
+    </script>
+  </body>
+</html>

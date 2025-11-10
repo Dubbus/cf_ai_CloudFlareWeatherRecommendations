@@ -1,0 +1,36 @@
+{
+  // Cloudflare Workers config (JSONC)
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "smart-weather-planner",
+  "main": "src/index.js",
+  "compatibility_date": "2025-11-09",
+
+  // Bindings
+  "ai": { "binding": "AI" },
+  "kv_namespaces": [
+    { "binding": "FORECAST_CACHE", "id": "76872dd89e064af384cc3bf5af179b2c" }
+  ],
+
+  "durable_objects": {
+    "bindings": [{ "name": "MY_DURABLE_OBJECT", "class_name": "MyDurableObject" }]
+  },
+
+  "vars": {
+    "WEATHER_API_BASE": "https://api.open-meteo.com/v1/forecast",
+    "CACHE_TTL_SECONDS": "5400",
+     // Set to a Cloudflare AI model you have access to. Example: "@cf/meta/llama-3.3-70b-instruct"
+     // "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8",
+     // Toggle to "true" to force local mock AI during development
+     // "MOCK_AI": "false"
+  },
+
+  // Keep migrations that reference the existing Durable Object
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MyDurableObject"]
+    }
+  ],
+
+  "observability": { "enabled": true }
+}
