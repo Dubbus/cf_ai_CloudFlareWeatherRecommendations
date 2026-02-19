@@ -1,86 +1,125 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Smart Weather Planner — Demo UI</title>
-    <style>
-      body { 
-        font-family: system-ui, Arial; 
-        max-width: 1200px; 
-        margin: 32px auto; 
-        padding: 0 24px; 
-        line-height: 1.5;
-      }
-      label { display:block; margin-top:12px }
-      textarea { width:100%; height:120px }
-      pre { 
-        background:#f6f8fa; 
-        padding:16px; 
-        border-radius:8px; 
-        overflow:auto;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        font-size: 14px;
-        max-height: 800px;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 1em 0;
-      }
-      th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-      }
-      th {
-        background-color: #f6f8fa;
-      }
-      .row { display:flex; gap:12px; align-items: center; }
-      #output {
-        max-width: 100%;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border: 1px solid #e1e4e8;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Smart Weather Planner — Demo UI</h1>
+<html lang="en">
 
-    <label>City <input id="city" placeholder="e.g., Columbus, OH" /></label>
-    <div class="row">
-      <label>Lat <input id="lat" type="number" step="any" placeholder="e.g., 39.9612" /></label>
-      <label>Lon <input id="lon" type="number" step="any" placeholder="e.g., -82.9988" /></label>
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Weather Planner</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
 
-    <fieldset style="border:1px solid #ddd; padding:12px;">
-      <legend>Preferences</legend>
-      <div>
-        <label>Preferred times:</label>
-        <label><input type="checkbox" id="prefMorning" /> Morning</label>
-        <label><input type="checkbox" id="prefEvening" /> Evening</label>
+<body>
+  <div class="container">
+    <header>
+      <h1>Smart Weather Planner</h1>
+      <p class="subtitle">Optimize your weekly activities based on the forecast</p>
+    </header>
+
+    <main>
+      <!-- Location Settings -->
+      <section class="card">
+        <h2 class="section-title">Location</h2>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="city">City Name</label>
+            <input id="city" type="text" placeholder="e.g., Columbus, OH" autocomplete="address-level2">
+          </div>
+          <div class="form-group full-width">
+            <button id="useLocation" class="btn btn-secondary"
+              style="width:100%; justify-content: center; gap: 0.5rem;">
+              📍 Use Current Location
+            </button>
+          </div>
+          <div class="form-group">
+            <label for="lat">Latitude</label>
+            <input id="lat" type="number" step="any" placeholder="e.g., 39.9612">
+          </div>
+          <div class="form-group">
+            <label for="lon">Longitude</label>
+            <input id="lon" type="number" step="any" placeholder="e.g., -82.9988">
+          </div>
+          <input type="hidden" id="userId" value="user_123"> <!-- Placeholder for user ID -->
+        </div>
+      </section>
+
+      <!-- Preferences -->
+      <section class="card">
+        <h2 class="section-title">Preferences</h2>
+
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Preferred Times</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefMorning"> Morning
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefAfternoon"> Afternoon
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefEvening"> Evening
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="prefMaxTemp">Max Temp (°F)</label>
+            <input id="prefMaxTemp" type="number" placeholder="85">
+          </div>
+
+          <div class="form-group">
+            <label for="prefMinTemp">Min Temp (°F)</label>
+            <input id="prefMinTemp" type="number" placeholder="45">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Conditions</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefAvoidWind"> Avoid high winds
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefAvoidRain"> Avoid rain
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="prefAvoidSnow"> Avoid snow
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="prefActivities">Activities</label>
+            <input id="prefActivities" type="text" placeholder="e.g., running, hiking, picnic" autocomplete="off">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Comma-separated list of
+              activities you want to plan.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button id="saveState" class="btn btn-secondary">Save Settings</button>
+        <button id="getPlan" class="btn btn-primary">Generate Plan</button>
       </div>
-      <div>
-        <label>Max Temperature (°F) <input id="prefMaxTemp" type="number" placeholder="e.g., 85" style="width:100px;"/></label>
-        <label>Min Temperature (°F) <input id="prefMinTemp" type="number" placeholder="e.g., 45" style="width:100px;"/></label>
-      </div>
-      <div>
-        <label><input type="checkbox" id="prefAvoidWind" /> Avoid wind</label>
-      </div>
-      <div>
-        <label>Activities (comma-separated) <input id="prefActivities" placeholder="e.g., running, hiking, picnic" /></label>
-      </div>
-    </fieldset>
 
-    <div style="margin-top:12px">
-      <button id="saveState">Save State</button>
-      <button id="getPlan">Get Plan</button>
-    </div>
+      <!-- Status Messages -->
+      <div id="statusMsg" class="status-msg"></div>
 
-    <h3>Response</h3>
-    <pre id="output">(no response yet)</pre>
+      <!-- Output -->
+      <section class="card" style="margin-top: 1.5rem;">
+        <h2 class="section-title">Your Plan</h2>
+        <div id="output" class="output-area">
+          <div class="output-placeholder">Enter your location and preferences, then click "Generate Plan" to see your
+            personalized weather schedule.</div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-    <script src="./app.js"></script>
-  </body>
+  <script src="./app.js"></script>
+</body>
+
 </html>
