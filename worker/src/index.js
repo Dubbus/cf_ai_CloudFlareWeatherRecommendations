@@ -63,7 +63,7 @@ async function getForecast(env, lat, lon, days = 7) {
   }
 
   console.log('Building forecast URL with:', { lat, lon, days });
-  
+
   const url = new URL(env.WEATHER_API_BASE || "https://api.open-meteo.com/v1/forecast");
   url.searchParams.set("latitude", String(lat));
   url.searchParams.set("longitude", String(lon));
@@ -84,17 +84,17 @@ async function getForecast(env, lat, lon, days = 7) {
 
     console.log(`Fetching forecast for lat=${lat}, lon=${lon}, days=${days}`);
     const res = await fetch(url.toString());
-    
+
     if (!res.ok) {
       const errorText = await res.text();
       console.error('Weather API error:', { status: res.status, body: errorText });
       throw new Error(`Weather API error: ${res.status} - ${errorText}`);
     }
-    
+
     const data = await res.json();
     console.log('Weather API response:', data);
     console.log('API response:', JSON.stringify(data, null, 2));
-    
+
     // Validate response shape
     if (!data || !data.hourly || !Array.isArray(data.hourly.time) || !Array.isArray(data.hourly.temperature_2m)) {
       console.error('Invalid API response shape:', data);
@@ -124,14 +124,15 @@ async function getForecast(env, lat, lon, days = 7) {
     return data;
   } catch (err) {
     console.error('Forecast fetch error:', err);
-    return { hourly: { time: [], temperature_2m: [], precipitation_probability: [] } };
+    // Return error information so we can debug why it failed
+    return { hourly: { time: [], temperature_2m: [], precipitation_probability: [] }, error: String(err) };
   }
 }
 
 function slimForecastF(data) {
   // Debug logging
   console.log('Raw forecast data:', JSON.stringify(data, null, 2));
-  
+
   const hourly = data && data.hourly ? data.hourly : {};
   if (!hourly.time || !hourly.temperature_2m) {
     console.error('Missing hourly data:', hourly);
@@ -142,20 +143,20 @@ function slimForecastF(data) {
       precip: []
     };
   }
-  
+
   const dates = hourly.time;
   console.log(`Processing ${dates.length} hourly timestamps`);
-  
+
   // Group hourly data by day
   const dayMap = new Map();
   for (let i = 0; i < dates.length; i++) {
     const timestamp = dates[i];
     const temp = Number(hourly.temperature_2m[i]);
     const precip = Number(hourly.precipitation_probability[i]);
-    
+
     const date = new Date(timestamp);
     const dateStr = date.toISOString().split('T')[0];
-    
+
     if (!dayMap.has(dateStr)) {
       dayMap.set(dateStr, {
         temps: [],
@@ -163,7 +164,7 @@ function slimForecastF(data) {
         date: dateStr
       });
     }
-    
+
     const dayData = dayMap.get(dateStr);
     if (Number.isFinite(temp)) dayData.temps.push(temp);
     if (Number.isFinite(precip)) dayData.precips.push(precip);
@@ -185,7 +186,7 @@ function slimForecastF(data) {
     }),
     precip: dailyDates.map(d => {
       const precips = dayMap.get(d).precips;
-      return precips.length ? precips.reduce((a,b) => a + b, 0) / precips.length : null;
+      return precips.length ? precips.reduce((a, b) => a + b, 0) / precips.length : null;
     })
   };
 
@@ -199,12 +200,12 @@ function buildSafePlanFromFacts(facts, suitableIdxs) {
     const f = facts[i];
     const max = Number.isFinite(f.tmaxF) ? `${f.tmaxF}°F` : "N/A";
     const min = Number.isFinite(f.tminF) ? `${f.tminF}°F` : "N/A";
-    const p   = Number.isFinite(f.precipPct) ? `${f.precipPct}%` : "N/A";
+    const p = Number.isFinite(f.precipPct) ? `${f.precipPct}%` : "N/A";
     return `| ${f.date} | 7:00 AM - 9:00 AM | Max ${max} / Min ${min}, precip ${p} |`;
   });
 
   const table =
-`### Recommended Outdoor Time Windows
+    `### Recommended Outdoor Time Windows
 
 | Date | Time | Reason |
 | --- | --- | --- |
@@ -245,7 +246,7 @@ export default {
     // Persist/merge user state via Durable Object
     if (request.method === "POST" && path === "/state") {
       let body = {};
-      try { body = await request.json(); } catch (_) {}
+      try { body = await request.json(); } catch (_) { }
       const userId = body.userId || "demo-user-1";
       const id = env.MY_DURABLE_OBJECT.idFromName(userId);
       const stub = env.MY_DURABLE_OBJECT.get(id);
@@ -261,24 +262,24 @@ export default {
     if (request.method === "POST" && path === "/plan") {
       try {
         let body = {};
-        try { 
+        try {
           const text = await request.text();
           console.log('Raw request body:', text);
           body = JSON.parse(text);
         } catch (e) {
           console.error('Failed to parse request body:', e);
         }
-        
+
         console.log('Parsed request body:', JSON.stringify(body, null, 2));
-        
-        const userId    = body.userId || "demo-user-1";
-        const city      = body.city;
-        const lat       = Number(body.lat || 0);
-        const lon       = Number(body.lon || 0);
-        const days      = Number(body.days || 7);
-        const question  = body.question || "Plan my week for two runs and a picnic.";
+
+        const userId = body.userId || "demo-user-1";
+        const city = body.city;
+        const lat = Number(body.lat || 0);
+        const lon = Number(body.lon || 0);
+        const days = Number(body.days || 7);
+        const question = body.question || "Plan my week for two runs and a picnic.";
         const indoorOnly = Boolean(body.indoorOnly);
-        
+
         console.log('Planning request:', {
           userId, city, lat, lon, days, indoorOnly,
           prefs: body.prefs || {}
@@ -409,20 +410,23 @@ export default {
         if (prefsF.preferredTimes && typeof prefsF.preferredTimes === "object") {
           const times = [];
           if (prefsF.preferredTimes.morning) times.push("morning");
+          if (prefsF.preferredTimes.afternoon) times.push("afternoon");
           if (prefsF.preferredTimes.evening) times.push("evening");
           if (times.length) prefLines.push(`Preferred times: ${times.join(", ")}`);
         }
         if (Array.isArray(prefsF.activities) && prefsF.activities.length) {
           prefLines.push(`Activities: ${prefsF.activities.join(", ")}`);
         }
+        if (prefsF.avoidRain) prefLines.push('Avoid rain: true');
+        if (prefsF.avoidSnow) prefLines.push('Avoid snow: true');
         if (precipThreshold !== 50) prefLines.push(`Max precipitation chance: ${precipThreshold}%`);
 
         // ---------- Deterministic pre-check (°F) ----------
         const dates = slimF.dates || [];
         if (!dates.length || !slimF.tmax.length || !slimF.tmin.length) {
-          return json({ 
-            error: "FORECAST_ERROR", 
-            detail: "No forecast data available. Response shape: " + JSON.stringify({
+          return json({
+            error: "FORECAST_ERROR",
+            detail: "No forecast data available. " + (forecastRaw.error ? "API Error: " + forecastRaw.error : "") + " Response shape: " + JSON.stringify({
               dates: dates.length,
               maxTemps: slimF.tmax.length,
               minTemps: slimF.tmin.length
@@ -440,6 +444,16 @@ export default {
           if (isFiniteNum(prefsF.maxTemperatureF) && isFiniteNum(dayMax) && dayMax > prefsF.maxTemperatureF) ok = false;
           if (isFiniteNum(prefsF.minTemperatureF) && isFiniteNum(dayMin) && dayMin < prefsF.minTemperatureF) ok = false;
           if (isFiniteNum(dayPrecip) && dayPrecip > precipThreshold) ok = false;
+
+          // Condition-based filtering
+          if (ok && prefsF.avoidRain) {
+            // If precip > 30% and temp > 32F, assume rain
+            if (dayPrecip > 30 && dayMin > 32) ok = false;
+          }
+          if (ok && prefsF.avoidSnow) {
+            // If precip > 30% and temp <= 32F, assume snow
+            if (dayPrecip > 30 && dayMin <= 32) ok = false;
+          }
 
           if (ok) suitableIndices.push(i);
         }
@@ -560,10 +574,10 @@ export default {
             `Showing a corrected plan using only exact forecast values.\n\n${safe}`;
         }
 
-  // Return the human plan text and include any parsed structured JSON the model emitted
-  const respPayload = { plan: planText, city: mergedState.city || city || "", details: { prefsF, forecastF: slimF, reportedUnit: reportedUnit || null } };
-  if (parsedPlan) respPayload.structured = parsedPlan;
-  return json(respPayload);
+        // Return the human plan text and include any parsed structured JSON the model emitted
+        const respPayload = { plan: planText, city: mergedState.city || city || "", details: { prefsF, forecastF: slimF, reportedUnit: reportedUnit || null } };
+        if (parsedPlan) respPayload.structured = parsedPlan;
+        return json(respPayload);
       } catch (err) {
         return json({ error: "PLAN_ERROR", detail: String(err?.message || err) }, 500);
       }
