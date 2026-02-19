@@ -230,4 +230,5 @@ The response should show actual hourly temperatures aggregated by day, not the i
 
 Please create a robust README that someone who's looking at the project really quickly on a github can get some information from, and can give them good instructions as to how to run it. Regarding how to run it, do you suggest I host this on github, or should i suggest users to manually build it on their own and run it themselves? I probaably don;'t get a lot of time to get reviewed( big internship program who gave an optional assignment to build a project)
 
+
 Please now create a docs folder for easy publication on github pages.
